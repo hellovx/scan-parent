@@ -1,0 +1,7 @@
+api（接口定义） scan-api
+consumer(消费者、业务逻辑、定时任务) scan-core(也可作为web使用)
+provider（提供者） scan-server
+web（页面请求）scan-web(现在不用)
+
+
+

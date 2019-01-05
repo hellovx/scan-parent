@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:dubbo="http://code.alibabatech.com/schema/dubbo" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd http://code.alibabatech.com/schema/dubbo http://code.alibabatech.com/schema/dubbo/dubbo.xsd ">
+	<!-- <dubbo:service interface="com.liantuo.international.client.server.PushResultRemoteServer" 
+		group="remoteGroup" version="1.0.0" ref="pushResultRemoteServer" retries="0" 
+		protocol="dubbo" /> <dubbo:service interface="com.liantuo.international.client.server.gds.IntlGDSRemoteServer" 
+		group="intlRemoteGroup" version="1.0.0" ref="intlGDSRemoteServer" retries="0" 
+		protocol="dubbo" > <dubbo:method name="checkSSQte" timeout="20000" retries="0"/> 
+		</dubbo:service> -->
+
+	<!-- 声明需要暴露的服务接口 -->
+	<dubbo:service interface="com.zh.api.service.demo.HelloInfoService"
+		ref="helloInfoService"></dubbo:service>
+
+
+</beans>

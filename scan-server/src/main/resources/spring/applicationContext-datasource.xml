@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
+http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.1.xsd
+http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.1.xsd
+http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.1.xsd
+http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.1.xsd
+http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.1.xsd">
+
+
+
+
+	<!-- 数据源配置,使用应用内的DBCP数据库连接池 -->
+	<bean id="db_test1" class="com.alibaba.druid.pool.DruidDataSource"
+		init-method="init" destroy-method="close">
+		<!-- Connection Info -->
+		<property name="driverClassName" value="${jdbc.driver}" />
+		<property name="url" value="${jdbc.url}" />
+		<property name="username" value="${jdbc.username}" />
+		<property name="password" value="${jdbc.password}" />
+		<!-- Connection Pooling Info -->
+		<property name="initialSize" value="30" />
+		<property name="maxActive" value="200" />
+		<property name="connectionProperties" value="UTF-8" />
+	</bean>
+	
+<!-- 	<bean id="db_test2" class="com.alibaba.druid.pool.DruidDataSource"
+		init-method="init" destroy-method="close">
+		Connection Info
+		<property name="driverClassName" value="${jdbc.driver.db2}" />
+		<property name="url" value="${jdbc.url.db2}" />
+		<property name="username" value="${jdbc.username.db2}" />
+		<property name="password" value="${jdbc.password.db2}" />
+		Connection Pooling Info
+		<property name="initialSize" value="30" />
+		<property name="maxActive" value="200" />
+		<property name="connectionProperties" value="UTF-8" />
+	</bean> -->
+
+
+   <!-- 动态配置数据源 -->  
+   <bean id ="dataSource" class= "com.zh.server.utils.db.DynamicDataSource" >  
+          <property name ="targetDataSources">
+                <map key-type ="java.lang.String">  
+                      <entry value-ref ="db_test1" key= "DB1"></entry >  
+                      <!-- <entry value-ref ="db_test2" key= "DB2"></entry >   -->
+                </map >  
+          </property >  
+          <property name ="defaultTargetDataSource" ref= "db_test1"></property >      <!-- 默认使用ds1的数据源 -->  
+   </bean > 
+   
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<!-- 数据库连接池 -->
+		<property name="dataSource" ref="dataSource" />
+		<!-- 加载mybatis的全局配置文件 -->
+		<property name="configLocation" value="classpath:mybatis/mybatisConfig.xml" />
+		<!-- myBatis映射XML文件和映射接口文件不放在同一个包下,需要手动配置XML文件的路径  -->
+		<property name="mapperLocations" value="classpath:mybatis/mapper/**/*Mapper.xml"></property>
+	</bean>
+
+	<!-- mapper扫描器 所谓的扫描dao接口 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<!-- 扫描包路径，如果需要扫描多个包，中间使用半角逗号隔开 -->
+		<property name="basePackage" value="com.zh.server.mapper"></property>
+		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" />
+	</bean>
+
+	<!-- 配置SQLSession模板 -->
+<!--  	<bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
+		<constructor-arg index="0" ref="sqlSessionFactory" />
+	</bean>  -->
+
+	<!-- 事务管理器 对mybatis操作数据库事务控制，spring使用jdbc的事务控制类 -->
+	<bean id="transactionManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+
+	<!-- 使用annotation定义事务 -->
+<!-- 	<tx:annotation-driven transaction-manager="transactionManager"
+		proxy-target-class="true" /> -->
+
+
+	<!-- 配置事务的传播特性 -->
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<tx:method name="create*" read-only="false" rollback-for="Exception" propagation="REQUIRED" />
+			<tx:method name="add*" read-only="false" rollback-for="Exception" propagation="REQUIRED"/>
+			<tx:method name="save*" read-only="false" rollback-for="Exception" propagation="REQUIRED" />
+			<tx:method name="insert*" read-only="false" rollback-for="Exception" propagation="REQUIRED" />
+			<tx:method name="update*" read-only="false" rollback-for="Exception" propagation="REQUIRED"/> 
+			<tx:method name="delete*" read-only="false" rollback-for="Exception" propagation="REQUIRED"/>
+			<tx:method name="get*" read-only="true"/>
+			<tx:method name="search*" read-only="true"/>
+			<tx:method name ="find*" read-only="true" />  
+            <tx:method name ="query*" read-only="true" /> 
+            <tx:method name ="select*" read-only="true" />  
+		</tx:attributes>
+	</tx:advice>
+	
+	<!--  order="2" aop事务顺序低于多数据源切换前操作注解式aop -->
+	<aop:config >
+		<aop:pointcut expression="execution(* com.liantuo.server.service.impl..*.*(..))"
+			id="txPointcut" />
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="txPointcut" order="2"/>
+	</aop:config>
+	
+	<!-- AOP注解配置 -->
+	<aop:aspectj-autoproxy />
+	
+	 
+</beans>
